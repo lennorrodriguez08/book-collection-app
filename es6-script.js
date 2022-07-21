@@ -29,11 +29,25 @@ class AppInterface {
         list.appendChild(tr);
     }
 
-    // METHOD TO DELETE BOOK
+    // METHOD TO DELETE BOOK FROM UI AND TO LOCAL STORAGE
 
     deleteBook(target) {
 
         target.parentElement.parentElement.parentElement.remove();
+
+        let bookLS = JSON.parse(localStorage.getItem('book'));
+
+        bookLS.forEach(function(book, index) {
+
+            if (book.isbn == target.parentElement.parentElement.previousElementSibling.textContent) {
+
+                bookLS.splice(index, 1);
+
+                localStorage.setItem('book', JSON.stringify(bookLS));
+
+            }
+
+        });
 
     }
 
@@ -62,6 +76,26 @@ class AppInterface {
         document.querySelector('#author').value = '';
         document.querySelector('#isbn').value = '';
     }
+
+    static addToLocalStorage(book) {
+
+        let bookLS;
+
+        if (localStorage.getItem('book') == null) {
+
+            bookLS = [];
+
+        }   else {
+
+            bookLS = JSON.parse(localStorage.getItem('book'));
+
+        }
+
+        bookLS.push(book);
+
+        localStorage.setItem('book', JSON.stringify(bookLS));
+
+    }
 }
 
 // EVENT TO ADD BOOK
@@ -87,6 +121,9 @@ document.querySelector('#book-form').addEventListener('submit', function(event) 
 
     }   else {
 
+
+        AppInterface.addToLocalStorage(newBook);
+
         ui.addBook(newBook);
         ui.showAlert(title + ' book has been added!', 'success');
         ui.clearInputFields();
@@ -105,7 +142,43 @@ document.querySelector('#book-list').addEventListener('click', function(eventHan
 
     if (eventHandler.target.classList.contains('delete')) {
         ui.deleteBook(eventHandler.target);
-        ui.showAlert(eventHandler.target.parentElement.parentElement.parentElement.firstElementChild.textContent + ' book has been deleted', 'success')
+        ui.showAlert(eventHandler.target.parentElement.parentElement.parentElement.firstElementChild.textContent + ' book has been deleted', 'success');
     }
+
+});
+
+// LOAD DATA FROM LOCAL STORAGE TO USER INTERFACE
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    let bookLS;
+
+    let bookList = document.querySelector('#book-list');
+
+    if (localStorage.getItem('book') == null ) {
+
+        bookLS = [];
+
+    }   else {
+
+        bookLS = JSON.parse(localStorage.getItem('book'));
+
+    }
+
+    bookLS.forEach(function(book) {
+
+        let tr = document.createElement('tr');
+
+        tr.innerHTML = `
+        <tr>
+        <td>${book.title}</td>
+        <td>${book.author}</td>
+        <td>${book.isbn}</td>
+        <td><a href='#'><i class="fa-solid fa-trash-can delete" style='color: red;'></i></a></td>
+        `
+
+        bookList.appendChild(tr);
+
+    });
 
 });
